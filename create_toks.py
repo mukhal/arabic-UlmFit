@@ -6,7 +6,7 @@ from spacy.lang.ar import Arabic
 import re
 from spacy.tokens import Doc, Span, Token
 
-nlp = Arabic()
+
 
 #all_diacritics = u"[\u0640\u064b\u064c\u064d\u064e\u064f\u0650\u0651\u0652\u0670]"
 #remove_diacritics = lambda token: re.sub(all_diacritics, '', token.text)
@@ -14,10 +14,6 @@ nlp = Arabic()
 #Doc.set_extension('without_diacritics', getter=remove_diacritics)
 
 
-print([(token.text, token._.without_diacritics) for token in tokens])
-
-assert tokens[0]._.without_diacritics == u"رمضان"
-assert tokens[1]._.without_diacritics == u"كريم"
 BOS = 'xbos'  # beginning-of-sentence tag
 FLD = 'xfld'  # data field tag
 
@@ -42,6 +38,8 @@ def get_texts(df, n_lbls, lang='en'):
         for i in range(n_lbls+1, len(df.columns)): texts += f' {FLD} {i-n_lbls+1} ' + df[i].astype(str)
     texts = list(texts.apply(fixup).values)
 
+    nlp = Arabic()
+
     tok = [nlp(t) for t in texts]
     return tok, list(labels)
 
@@ -58,6 +56,8 @@ def get_all(df, n_lbls, lang='en'):
 
 def create_toks(dir_path, chunksize=24000, n_lbls=1, lang='en'):
     print(f'dir_path {dir_path} chunksize {chunksize} n_lbls {n_lbls} lang {lang}')
+    
+    '''
     try:
         spacy.load(lang)
     except OSError:
@@ -66,6 +66,7 @@ def create_toks(dir_path, chunksize=24000, n_lbls=1, lang='en'):
         lang = lang if lang in ['en', 'de', 'es', 'pt', 'fr', 'it', 'nl'] else 'xx'
         print(f'Command: python -m spacy download {lang}')
         sys.exit(1)
+    '''
     dir_path = Path(dir_path)
     assert dir_path.exists(), f'Error: {dir_path} does not exist.'
     df_trn = pd.read_csv(dir_path / 'train.csv', header=None, chunksize=chunksize)
