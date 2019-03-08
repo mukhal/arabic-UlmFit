@@ -2,6 +2,22 @@ from fastai.text import *
 import html
 import fire
 
+from spacy.lang.ar import Arabic
+import re
+from spacy.tokens import Doc, Span, Token
+
+nlp = Arabic()
+
+#all_diacritics = u"[\u0640\u064b\u064c\u064d\u064e\u064f\u0650\u0651\u0652\u0670]"
+#remove_diacritics = lambda token: re.sub(all_diacritics, '', token.text)
+#Token.set_extension('without_diacritics', getter=remove_diacritics)
+#Doc.set_extension('without_diacritics', getter=remove_diacritics)
+
+
+print([(token.text, token._.without_diacritics) for token in tokens])
+
+assert tokens[0]._.without_diacritics == u"رمضان"
+assert tokens[1]._.without_diacritics == u"كريم"
 BOS = 'xbos'  # beginning-of-sentence tag
 FLD = 'xfld'  # data field tag
 
@@ -26,7 +42,7 @@ def get_texts(df, n_lbls, lang='en'):
         for i in range(n_lbls+1, len(df.columns)): texts += f' {FLD} {i-n_lbls+1} ' + df[i].astype(str)
     texts = list(texts.apply(fixup).values)
 
-    tok = Tokenizer(lang=lang).proc_all_mp(partition_by_cores(texts), lang=lang)
+    tok = [nlp(t) for t in texts]
     return tok, list(labels)
 
 
