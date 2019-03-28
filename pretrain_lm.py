@@ -12,6 +12,7 @@ def train_lm(dir_path, cuda_id, cl=1, bs=64, backwards=False, lr=3e-4, sampled=T
     if not hasattr(torch._C, '_cuda_setDevice'):
         print('CUDA not available. Setting device=-1.')
         cuda_id = -1
+    print(backwards)
     torch.cuda.set_device(cuda_id)
     PRE  = 'bwd_' if backwards else 'fwd_'
     IDS = 'ids'

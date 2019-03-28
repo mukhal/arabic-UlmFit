@@ -3,6 +3,10 @@ import html
 import fire
 
 from spacy.lang.ar import Arabic
+from pyarabic.araby import tokenize, strip_harakat, strip_tashkeel, normalize_hamza, normalize_ligature
+from nltk.tokenize import wordpunct_tokenize
+from fastai.core import *
+
 import re
 from spacy.tokens import Doc, Span, Token
 
@@ -13,7 +17,8 @@ from concurrent.futures import ProcessPoolExecutor
 #Token.set_extension('without_diacritics', getter=remove_diacritics)
 #Doc.set_extension('without_diacritics', getter=remove_diacritics)
 
-ar_nlp = Arabic()
+def ar_tokenizer(t):
+    return [wordpunct_tokenize(normalize_ligature(normalize_hamza(strip_tashkeel(k)))) for k in t]
 
 BOS = 'xbos'  # beginning-of-sentence tag
 FLD = 'xfld'  # data field tag
@@ -25,7 +30,7 @@ def fixup(x):
     x = x.replace('#39;', "'").replace('amp;', '&').replace('#146;', "'").replace(
         'nbsp;', ' ').replace('#36;', '$').replace('\\n', "\n").replace('quot;', "'").replace(
         '<br />', "\n").replace('\\"', '"').replace('<unk>','u_n').replace(' @.@ ','.').replace(
-        ' @-@ ','-').replace('\\', ' \\ ')
+        ' @-@ ','-').replace('\\', ' \\ ').replace('ى','ي')
     return re1.sub(' ', html.unescape(x))
 
 
@@ -39,9 +44,11 @@ def get_texts(df, n_lbls, lang='en'):
         for i in range(n_lbls+1, len(df.columns)): texts += f' {FLD} {i-n_lbls+1} ' + df[i].astype(str)
     texts = list(texts.apply(fixup).values)
 
+    n_cpus= 16
+    with ProcessPoolExecutor(n_cpus) as e:
+        #a = e.map(ar_tokenizer, )
+        tok= sum(e.map(ar_tokenizer, partition_by_cores(list(texts), n_cpus)), [])
 
-    with ProcessPoolExecutor(32) as e:
-        tok= sum(e.map(ar_nlp, texts), [])
 
     #tok = [ar_nlp(t) for t in texts]
     return tok, list(labels)
@@ -57,7 +64,7 @@ def get_all(df, n_lbls, lang='en'):
     return tok, labels
 
 
-def create_toks(dir_path, chunksize=24000, n_lbls=1, lang='en'):
+def create_toks(dir_path, chunksize=24000, n_lbls=1, lang='ar'):
     print(f'dir_path {dir_path} chunksize {chunksize} n_lbls {n_lbls} lang {lang}')
     
     '''
@@ -77,7 +84,9 @@ def create_toks(dir_path, chunksize=24000, n_lbls=1, lang='en'):
 
     tmp_path = dir_path / 'tmp'
     tmp_path.mkdir(exist_ok=True)
+    
     tok_trn, trn_labels = get_all(df_trn, n_lbls, lang=lang)
+    print("Done train set")
     tok_val, val_labels = get_all(df_val, n_lbls, lang=lang)
 
     np.save(tmp_path / 'tok_trn.npy', tok_trn)
@@ -85,8 +94,8 @@ def create_toks(dir_path, chunksize=24000, n_lbls=1, lang='en'):
     np.save(tmp_path / 'lbl_trn.npy', trn_labels)
     np.save(tmp_path / 'lbl_val.npy', val_labels)
 
-    trn_joined = [' '.join(o) for o in tok_trn]
-    open(tmp_path / 'joined.txt', 'w', encoding='utf-8').writelines(trn_joined)
+    #trn_joined = [' '.join(o) for o in tok_trn]
+    #open(tmp_path / 'joined.txt', 'w', encoding='utf-8').writelines(trn_joined)
 
 
 if __name__ == '__main__': fire.Fire(create_toks)

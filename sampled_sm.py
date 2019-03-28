@@ -1,4 +1,4 @@
-from fastai.learner import *
+#from fastai.learner import *
 from fastai.text import *
 
 def resample_vocab(itos, trn, val, sz):

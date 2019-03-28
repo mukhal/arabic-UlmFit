@@ -2,7 +2,7 @@ from fastai.text import *
 import fire
 
 
-def tok2id(dir_path, max_vocab=30000, min_freq=1):
+def tok2id(dir_path, max_vocab=50000, min_freq=20):
     print(f'dir_path {dir_path} max_vocab {max_vocab} min_freq {min_freq}')
     p = Path(dir_path)
     assert p.exists(), f'Error: {p} does not exist.'
@@ -13,7 +13,7 @@ def tok2id(dir_path, max_vocab=30000, min_freq=1):
     val_tok = np.load(tmp_path / 'tok_val.npy')
 
     freq = Counter(p for o in trn_tok for p in o)
-    print(freq.most_common(25))
+    print(freq.most_common(50))
     itos = [o for o,c in freq.most_common(max_vocab) if c>min_freq]
     itos.insert(0, '_pad_')
     itos.insert(0, '_unk_')
