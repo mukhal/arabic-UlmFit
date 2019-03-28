@@ -20,6 +20,7 @@ parser.add_argument('--finetune', action='store_true', default=False,
                     help='finetune existing model')
 parser.add_argument('--model', type=str, default='GRU',
                     help='type of recurrent net (RNN_TANH, RNN_RELU, LSTM, GRU)')
+parser.add_argument('--bidirectional', action='store_true', default=False)
 parser.add_argument('--emsize', type=int, default=200,
                     help='size of word embeddings')
 parser.add_argument('--nhid', type=int, default=200,
@@ -49,7 +50,7 @@ parser.add_argument('--log-interval', type=int, default=200, metavar='N',
 parser.add_argument('--save', type=str,  default='./trained_models/lm_model.pt', # /output
                     help='path to save the final model')
 
-parser.add_argument('--slanted_lr', action='store_true', default=True, help='Use Slanted Learning Rates')
+parser.add_argument('--slanted_lr', action='store_true', default=False, help='Use Slanted Learning Rates')
 parser.add_argument('--cut_frac', type=float, default=0.1, help='Slanet LR cut fraction')
 parser.add_argument('--ratio', type=float, default=32.0, help='Slanted Learning Rates Ratio')
 parser.add_argument('--lr_max', type=float,default=0.01, help='slanted learning rate max value')
@@ -126,7 +127,7 @@ T = (train_data.size(0) // args.bptt) * args.epochs
 ###############################################################################
 
 ntokens = len(corpus.dictionary)
-model = model.RNNModel(args.model, ntokens, args.emsize, args.nhid, args.nlayers, args.dropout, args.tied)
+model = model.RNNModel(args.model, ntokens, args.emsize, args.nhid, args.nlayers, args.dropout, args.tied, args.bidirectional)
 
 # Load checkpoint
 if args.checkpoint != '':

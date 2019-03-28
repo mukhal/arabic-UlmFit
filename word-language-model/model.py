@@ -4,12 +4,15 @@ from torch.autograd import Variable
 class RNNModel(nn.Module):
     """Container module with an encoder, a recurrent module, and a decoder."""
 
-    def __init__(self, rnn_type, ntoken, ninp, nhid, nlayers, dropout=0.5, tie_weights=False):
+    def __init__(self, rnn_type, ntoken, ninp, nhid, nlayers, dropout=0.5, tie_weights=False, bidirectional=False):
         super(RNNModel, self).__init__()
         self.drop = nn.Dropout(dropout)
         self.encoder = nn.Embedding(ntoken, ninp) # Token2Embeddings
+        self.bidirectional= bidirectional
+
         if rnn_type in ['LSTM', 'GRU']:
-            self.rnn = getattr(nn, rnn_type)(ninp, nhid, nlayers, dropout=dropout)
+            self.rnn = getattr(nn, rnn_type)(ninp, nhid, nlayers, dropout=dropout, bidirectional=bidirectional)
+        
         else:
             try:
                 nonlinearity = {'RNN_TANH': 'tanh', 'RNN_RELU': 'relu'}[rnn_type]
@@ -17,8 +20,8 @@ class RNNModel(nn.Module):
                 raise ValueError( """An invalid option for `--model` was supplied,
                                  options are ['LSTM', 'GRU', 'RNN_TANH' or 'RNN_RELU']""")
             self.rnn = nn.RNN(ninp, nhid, nlayers, nonlinearity=nonlinearity, dropout=dropout)
-        self.decoder = nn.Linear(nhid, ntoken)
-
+        self.decoder = nn.Linear(nhid * (2 if self.bidirectional else 1), ntoken)
+        
         # Optionally tie weights as in:
         # "Using the Output Embedding to Improve Language Models" (Press & Wolf 2016)
         # https://arxiv.org/abs/1608.05859
@@ -46,13 +49,17 @@ class RNNModel(nn.Module):
         emb = self.drop(self.encoder(input))
         output, hidden = self.rnn(emb, hidden)
         output = self.drop(output)
+
         decoded = self.decoder(output.view(output.size(0)*output.size(1), output.size(2)))
         return decoded.view(output.size(0), output.size(1), decoded.size(1)), hidden
 
+
     def init_hidden(self, bsz):
         weight = next(self.parameters()).data
+        layer_mul = 2 if self.bidirectional else 1
+
         if self.rnn_type == 'LSTM':
-            return (Variable(weight.new(self.nlayers, bsz, self.nhid).zero_()),
-                    Variable(weight.new(self.nlayers, bsz, self.nhid).zero_()))
+            return (Variable(weight.new(self.nlayers*layer_mul, bsz, self.nhid).zero_()),
+                    Variable(weight.new(self.nlayers*layer_mul, bsz, self.nhid).zero_()))
         else:
-            return Variable(weight.new(self.nlayers, bsz, self.nhid).zero_())
+            return Variable(weight.new(self.nlayers*layer_mul, bsz, self.nhid).zero_())

@@ -2,6 +2,7 @@ import os
 import torch
 import numpy as np
 import pickle as pkl
+import pandas as pd
 
 class Dictionary(object):
     """Build word2idx and idx2word from Corpus(train/val/test)"""
@@ -22,17 +23,19 @@ class Dictionary(object):
 
 class Corpus(object):
     """Corpus Tokenizer"""
-    def __init__(self, path):
+    def __init__(self, path, use_ids=True):
         itos = pkl.load(open(os.path.join(path, 'itos.pkl'), 'rb'))
         self.dictionary = {itos[i]:i for i in range(len(itos))}
         
-        train = np.load(os.path.join(path, 'trn_ids.npy'))
-        val = np.load(os.path.join(path, 'val_ids.npy'))
-        test = np.load(os.path.join(path, 'val_ids.npy'))
+        if use_ids:
+            train = np.load(os.path.join(path, 'trn_ids.npy'))
+            val = np.load(os.path.join(path, 'val_ids.npy'))
+            test = np.load(os.path.join(path, 'val_ids.npy'))
 
-        self.train = self.get_tensor(train)
-        self.valid = self.get_tensor(val)
-        self.test = self.get_tensor(test)
+            self.train = self.get_tensor(train)
+            self.valid = self.get_tensor(val)
+            self.test = self.get_tensor(test)
+
 
     def get_tensor(self, data):
         
