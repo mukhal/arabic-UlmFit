@@ -127,7 +127,7 @@ class BasicBiGRUs(General): ## inherits General
         lm_output = TimeDistributed(Dense(self.vocab_size, activation='softmax'))(x)
         ## return graph model
         model = Model(Sequence_in, lm_output)
-        model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+        model.compile(loss='sparse_categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
 
 
         self.model = model
@@ -136,6 +136,17 @@ class BasicBiGRUs(General): ## inherits General
 bptt=35
 batch_size=64
 seq_len = 30
+
+def onehot_initialization(a):
+    ncols = a.max()+1
+    out = np.zeros(a.shape + (ncols,), dtype=int)
+    out[all_idx(a, axis=2)] = 1
+    return out
+
+def all_idx(idx, axis):
+    grid = np.ogrid[tuple(map(slice, idx.shape))]
+    grid.insert(axis, idx)
+    return tuple(grid)
 
 
 def get_batch(source, i, evaluation=False):
@@ -157,8 +168,11 @@ def get_x_y(data):
     X = pad_sequences(X, maxlen=seq_len)
     Y = pad_sequences(Y, maxlen=seq_len)
 
+    Y = np.expand_dims(Y, axis=2)
+
     print(X.shape)
-    return X, Y   
+    print(Y.shape)
+    return X, Y 
 
 
 
@@ -173,6 +187,7 @@ def get_flattened(data):
 if __name__=='__main__':
 
     model = BasicBiGRUs().model
+    model.summary()
 
     train = np.load(os.path.join(DATA_DIR, 'trn_ids.npy'))
     val = np.load(os.path.join(DATA_DIR, 'val_ids.npy'))
