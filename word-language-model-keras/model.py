@@ -15,6 +15,8 @@ from keras.layers.merge import Concatenate
 from keras.models import model_from_json
 import os 
 
+from keras.utils import to_categorical
+
 from keras.preprocessing.sequence import pad_sequences
 
 DATA_DIR = '../data/dialect-identification/'
@@ -127,15 +129,15 @@ class BasicBiGRUs(General): ## inherits General
         lm_output = TimeDistributed(Dense(self.vocab_size, activation='softmax'))(x)
         ## return graph model
         model = Model(Sequence_in, lm_output)
-        model.compile(loss='sparse_categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
 
 
         self.model = model
 
 ### configs
 bptt=35
-batch_size=64
-seq_len = 30
+batch_size=32
+MAX_SEQ_LEN = 30
 
 def onehot_initialization(a):
     ncols = a.max()+1
@@ -149,31 +151,23 @@ def all_idx(idx, axis):
     return tuple(grid)
 
 
-def get_batch(source, i, evaluation=False):
-    seq_len = min(bptt, len(source) - 1 - i)
-    data = source[i:i+seq_len]
-    target = source[i+1:i+1+seq_len]
-    return data, target
-
-
-def get_x_y(data):
+def get_x_y(data, batch_size=batch_size):
     X = []
     Y = []
     for i in range(0, len(data), bptt):
-        x, y = get_batch(data, i)
+        seq_len = min(bptt, len(data) - 1 - i)
+        x = data[i:i+seq_len]
+        y = data[i+1:i+1+seq_len]
+
         X.append(x)
         Y.append(y)
 
     
-    X = pad_sequences(X, maxlen=seq_len)
-    Y = pad_sequences(Y, maxlen=seq_len)
+    X = pad_sequences(X, maxlen=MAX_SEQ_LEN)
+    Y = pad_sequences(Y, maxlen=MAX_SEQ_LEN)
 
-    Y = np.expand_dims(Y, axis=2)
-
-    print(X.shape)
-    print(Y.shape)
-    return X, Y 
-
+    for i in range(0, len(X), batch_size):
+        yield X[i:i+batch_size], to_categorical(Y[i:i+batch_size], num_classes=50002)
 
 
 def get_flattened(data):
@@ -197,11 +191,6 @@ if __name__=='__main__':
     val = get_flattened(val)
     test= get_flattened(test)
 
-
-    x_train, y_train =get_x_y(train)
-    x_val, y_val = get_x_y(val)
-
-
-    model.fit(x_train, y_train, batch_size=32)
+    model.fit_generator(get_x_y(train), steps_per_epoch=len(train) // (bptt * batch_size))
     
 
