@@ -1,5 +1,6 @@
 ## Instructions
-## This is my Own Implementation of the Universal Language Model Finetuning For Text Classification. Note that this README is based on the README provided at Fastai repo.
+### This is my Own Implementation of the Universal Language Model Finetuning For Text Classification. 
+Note that the first part of the README is based on the README provided at Fastai repo.
 
 ### 0. Preparing Wikipedia
 
