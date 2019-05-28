@@ -1,8 +1,8 @@
 ## Instructions
-### This is my Own Implementation of the [Universal Language Model Finetuning For Text Classification](https://arxiv.org/pdf/1801.06146.pdf) Paper. 
+### This is my own Implementation of the [Universal Language Model Finetuning For Text Classification](https://arxiv.org/pdf/1801.06146.pdf) Paper. 
 Note that the first part of the README is based on the README provided at Fastai repo.
 
-### 0. Preparing Wikipedia
+### 1. Preparing Wikipedia
 
 If you want to train your own language model on a Wikipedia in your chosen language,
 run `prepare_wiki.sh`. The script will ask for a language and will then
@@ -19,7 +19,7 @@ where `LANG` is the language of the Wikipedia. In our case, we use `ar` as the l
 classification datasets. By default, `train.csv` contains around 100 million tokens
 and `val.csv` is 10% the size of `train.csv`.
 
-### 1. Tokenization
+### 2. Tokenization
 
 Run `create_toks.py` to tokenize the input texts.
 
@@ -45,7 +45,7 @@ in a `tmp` in the above path in the following files:
 `tok_trn.npy`, `tok_val.npy`, `lbl_trn.npy`, and `lbl_val.npy`.
 In addition, a joined corpus containing white space-separated tokens is produced in `tmp/joined.txt`.
 
-### 2. Mapping tokens to ids
+### 3. Mapping tokens to ids
 
 Run `tok2id.py` to map the tokens in the `tok_trn.npy` and `tok_val.npy` files to ids.
 
@@ -62,4 +62,48 @@ tok2id.py --prefix PREFIX [--max-vocab MAX_VOCAB] [--min-freq MIN_FREQ]
 
 ### (3a. Pretrain the Wikipedia language model)
 
-Run 
+I use the LM imeplementation found the pytorch [examples](https://github.com/pytorch/examples/tree/master/word_language_model)
+Usage: 
+
+```
+usage: main.py [-h] [--data DATA] [--checkpoint CHECKPOINT]
+               [--pretrained PRETRAINED] [--finetune] [--model MODEL]
+               [--bidirectional] [--emsize EMSIZE] [--nhid NHID]
+               [--nlayers NLAYERS] [--lr LR] [--clip CLIP] [--epochs EPOCHS]
+               [--batch_size N] [--bptt BPTT] [--dropout DROPOUT] [--tied]
+               [--seed SEED] [--cuda] [--log-interval N] [--save SAVE]
+               [--slanted_lr] [--cut_frac CUT_FRAC] [--ratio RATIO]
+               [--lr_max LR_MAX]
+
+PyTorch PennTreeBank RNN/LSTM Language Model
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --data DATA           location of the data corpus
+  --checkpoint CHECKPOINT
+                        model checkpoint to use
+  --pretrained PRETRAINED
+                        pre-trained model to finetune
+  --finetune            finetune existing model
+  --model MODEL         type of recurrent net (RNN_TANH, RNN_RELU, LSTM, GRU)
+  --bidirectional
+  --emsize EMSIZE       size of word embeddings
+  --nhid NHID           number of hidden units per layer
+  --nlayers NLAYERS     number of layers
+  --lr LR               initial learning rate
+  --clip CLIP           gradient clipping
+  --epochs EPOCHS       upper epoch limit
+  --batch_size N        batch size
+  --bptt BPTT           sequence length
+  --dropout DROPOUT     dropout applied to layers (0 = no dropout)
+  --tied                tie the word embedding and softmax weights
+  --seed SEED           random seed
+  --cuda                use CUDA
+  --log-interval N      report interval
+  --save SAVE           path to save the final model
+  --slanted_lr          Use Slanted Learning Rates
+  --cut_frac CUT_FRAC   Slanet LR cut fraction
+  --ratio RATIO         Slanted Learning Rates Ratio
+  --lr_max LR_MAX       slanted learning rate max value
+
+```
