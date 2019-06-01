@@ -108,3 +108,11 @@ optional arguments:
   --lr_max LR_MAX       slanted learning rate max value
 
 ```
+
+To pre-train a 1-layer LSTM Language Model with 300 as layer size on the wiki data:
+
+```
+$ cd word-language-model/
+$ python main.py --data ../data/wiki/ar/tmp/ --cuda --emsize 300 --nhid 300 --dropout 0.5 --epochs 10 --batch_size 256 --lr 10 --model LSTM --save ./trained_models/lstm_lm.pt
+```
+
