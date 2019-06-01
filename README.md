@@ -116,3 +116,16 @@ $ cd word-language-model/
 $ python main.py --data ../data/wiki/ar/tmp/ --cuda --emsize 300 --nhid 300 --dropout 0.5 --epochs 10 --batch_size 256 --lr 10 --model LSTM --save ./trained_models/lstm_lm.pt
 ```
 
+### (3b. Finetuning the language model on the target dataset)
+
+To finetune the LM, pass the `--finetune` flag. Also use `--pretrained` with the path to the pre-trained model. In case you want to use Slanted Triangular Learning rate, use the `--slanted_lr` flag and `--lr_max` to specify the maximum value of the learning rate. Refer to the [paper](https://arxiv.org/pdf/1801.06146.pdf) to understand more.
+
+```
+$ python main.py  --data ../data/dialect-identification/ --finetune --pretrained ./trained_models/lm_model.pt  --cuda --save ./trained_models/lm_dialect_finetuned.pt --lr 0.01 --slanted_lr --lr_max 1.0
+```
+
+### (3c. Finetuning the language model for classification on the target dataset)
+
+TODO: Command line arguments for `finetune.py`
+
+
